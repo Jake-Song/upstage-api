@@ -46,11 +46,22 @@ uv run scripts/digitization.py invoice.pdf
 The Markdown is printed and saved to
 `outputs/digitization/<document-name>.md`.
 
+Generate a reusable JSON Schema from your own document:
+
+```shell
+uv run scripts/schema_generation.py paper.pdf
+```
+
+The bare schema is printed and saved to
+`outputs/schema_generation/<document-name>-schema.json`, ready to pass to the
+extraction script with `--schema`.
+
 Extract fields using a JSON Schema file:
 
 ```shell
 uv run scripts/extraction.py invoice.pdf --schema schema/invoice-schema.json
 uv run scripts/extraction.py paper.pdf --schema schema/paper-schema.json
+uv run scripts/extraction.py paper.pdf --schema outputs/schema_generation/paper-schema.json
 uv run scripts/extraction.py paper.pdf --auto-schema
 ```
 
