@@ -85,6 +85,22 @@ the uploaded file, and saves the final JSON output to
 `outputs/agent/<document-name>.json`. `--agent-id` overrides the default Agent
 and `--config-id` pins a config version (the latest is used when omitted).
 
+Run a document through a custom agent pipeline built entirely from the API,
+without Upstage Studio:
+
+```shell
+uv run scripts/custom_agent.py invoice.pdf --auto-schema
+uv run scripts/custom_agent.py invoice.pdf --schema schema/invoice.json \
+  --system-prompt "Summarize risks in this contract."
+```
+
+The script runs three steps: document parsing to Markdown, schema-driven
+information extraction, and a final `solar-pro3` step that reads the Markdown
+and the extracted fields under the system prompt (a built-in analysis prompt
+is used when `--system-prompt` is omitted). It prints the LLM answer, saves
+the parsed Markdown to `outputs/custom_agent/<document-name>.md`, and saves
+the extraction and answer to `outputs/custom_agent/<document-name>.json`.
+
 ## Chat
 
 Send a single, non-streaming prompt to `solar-pro3`:
