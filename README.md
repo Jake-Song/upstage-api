@@ -73,6 +73,16 @@ repeatable output structure.
 Replace the PDF paths with your own documents; the repository does not include
 sample documents. Existing output files with the same name are overwritten.
 
+Run a document through an Agent created in Upstage Studio:
+
+```shell
+uv run scripts/agent.py invoice.pdf --agent-id <YOUR AGENT ID>
+```
+
+The script uploads the document, waits for the Agent job to complete, and saves
+the final output to `outputs/agent/<document-name>.json` when it is JSON or
+`outputs/agent/<document-name>.txt` otherwise.
+
 ## Chat
 
 Send a single, non-streaming prompt to `solar-pro3`:
