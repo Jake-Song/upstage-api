@@ -21,23 +21,39 @@ export UPSTAGE_API_KEY="up_..."
 ## Standalone scripts
 
 The scripts under `scripts/` call the Upstage API directly with `requests`.
-Run the reasoning example with a prompt:
+Run the reasoning script with a prompt or load one of the ten named prompts in
+`examples/reasoning.jsonl`:
 
 ```shell
 uv run scripts/chat_reasoning.py "What is the sum of the first 100 integers?"
+uv run scripts/chat_reasoning.py --example sum_first_100
+uv run scripts/chat_reasoning.py --all-examples
 ```
 
-Digitize a local document and print the result as Markdown:
+Run `uv run scripts/chat_reasoning.py --help` to see all example names. Results
+are saved to `outputs/reasoning.jsonl` with one record per prompt. Each record
+contains the example name, prompt, reasoning, and answer. `--all-examples`
+makes one API request for each input JSONL record and writes all ten results to
+the output JSONL file.
+
+Digitize your own local document and save the result as Markdown:
 
 ```shell
 uv run scripts/digitization.py invoice.pdf
 ```
 
-Extract invoice fields with the inline JSON Schema in the example:
+The Markdown is printed and saved to `outputs/<document-name>.md`.
+
+Extract invoice fields using the inline JSON Schema in the script:
 
 ```shell
 uv run scripts/extraction.py invoice.pdf
 ```
+
+The extracted JSON is printed and saved to `outputs/<document-name>.json`.
+Replace `invoice.pdf` with the path to your document; the repository does not
+include a sample invoice. Existing output files with the same name are
+overwritten.
 
 ## Chat
 

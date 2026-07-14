@@ -28,46 +28,75 @@ def main() -> None:
         choices=sorted(examples),
         help="Load a prompt from examples/reasoning.jsonl",
     )
+    parser.add_argument(
+        "--all-examples",
+        action="store_true",
+        help="Run every prompt in examples/reasoning.jsonl",
+    )
     args = parser.parse_args()
 
-    if (args.prompt is None) == (args.example is None):
-        parser.error("provide either a prompt or --example")
+    selection_count = sum(
+        (args.prompt is not None, args.example is not None, args.all_examples)
+    )
+    if selection_count != 1:
+        parser.error("provide a prompt, --example, or --all-examples")
 
-    prompt = args.prompt
-    if args.example:
-        prompt = examples[args.example]
+    if args.all_examples:
+        runs = sorted(examples.items())
+    elif args.example:
+        runs = [(args.example, examples[args.example])]
+    else:
+        runs = [("chat_reasoning", args.prompt)]
 
     api_key = os.environ.get("UPSTAGE_API_KEY")
     if not api_key:
         parser.error("UPSTAGE_API_KEY must be set")
 
-    response = requests.post(
-        "https://api.upstage.ai/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "model": "solar-pro3",
-            "messages": [{"role": "user", "content": prompt}],
-            "reasoning_effort": "high",
-        },
-    )
-    response.raise_for_status()
-
-    message = response.json()["choices"][0]["message"]
-    output = (
-        "Reasoning:\n"
-        f'{message.get("reasoning", "(No reasoning returned)")}\n\n'
-        "Answer:\n"
-        f'{message["content"]}'
-    )
-
     OUTPUTS_DIR.mkdir(exist_ok=True)
-    output_name = args.example or "chat_reasoning"
-    (OUTPUTS_DIR / f"{output_name}.txt").write_text(f"{output}\n")
+    output_records = []
+    for index, (output_name, prompt) in enumerate(runs):
+        response = requests.post(
+            "https://api.upstage.ai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "solar-pro3",
+                "messages": [{"role": "user", "content": prompt}],
+                "reasoning_effort": "high",
+            },
+        )
+        response.raise_for_status()
 
-    print(output)
+        message = response.json()["choices"][0]["message"]
+        reasoning = message.get("reasoning", "(No reasoning returned)")
+        answer = message["content"]
+        output = (
+            "Reasoning:\n"
+            f"{reasoning}\n\n"
+            "Answer:\n"
+            f"{answer}"
+        )
+        output_records.append(
+            {
+                "name": output_name,
+                "prompt": prompt,
+                "reasoning": reasoning,
+                "answer": answer,
+            }
+        )
+
+        if args.all_examples:
+            if index:
+                print()
+            print(f"=== {output_name} ===")
+        print(output)
+
+    output_text = "".join(
+        f"{json.dumps(record, ensure_ascii=False)}\n" for record in output_records
+    )
+    (OUTPUTS_DIR / "reasoning.jsonl").write_text(output_text)
 
 
 if __name__ == "__main__":
