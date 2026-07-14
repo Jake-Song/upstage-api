@@ -12,6 +12,7 @@ import requests
 
 API_BASE_URL = "https://api.upstage.ai/v1"
 AGENT_API_BASE_URL = "https://api.upstage.ai/v2"
+DOC_DIR = Path("doc")
 
 
 class CLIError(Exception):
@@ -179,6 +180,29 @@ def digitized_content(result: dict[str, Any], mode: str, output_format: str) -> 
     return content
 
 
+def save_digitized_output(
+    document: Path, output_format: str, content: str | dict[str, Any]
+) -> Path:
+    extensions = {
+        "markdown": ".md",
+        "text": ".txt",
+        "html": ".html",
+        "json": ".json",
+    }
+    output_path = DOC_DIR / f"{document.stem}{extensions[output_format]}"
+    if output_format == "json":
+        serialized_content = json.dumps(content, indent=2, ensure_ascii=False) + "\n"
+    else:
+        serialized_content = str(content)
+
+    try:
+        DOC_DIR.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(serialized_content, encoding="utf-8")
+    except OSError as exc:
+        raise CLIError(f"Could not save digitized output to {output_path}: {exc}") from None
+    return output_path
+
+
 def load_schema(path: Path) -> dict[str, Any]:
     require_file(path, "Schema")
     try:
@@ -335,9 +359,12 @@ def main(argv: list[str] | None = None) -> int:
                 args.document, args.mode, args.format, api_key
             )
             if args.json:
+                save_digitized_output(args.document, "json", result)
                 print_json(result)
             else:
-                print(digitized_content(result, args.mode, selected_format))
+                content = digitized_content(result, args.mode, selected_format)
+                save_digitized_output(args.document, selected_format, content)
+                print(content)
         elif args.command == "extract":
             result = run_extract(args.document, args.schema, api_key)
             if args.json:

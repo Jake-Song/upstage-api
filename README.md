@@ -84,7 +84,19 @@ uv run main.py digitize scan.png --mode ocr --format text
 ```
 
 `--format auto` is the default: it selects Markdown for document parsing and
-text for OCR. OCR does not support Markdown or HTML output.
+text for OCR. OCR does not support Markdown or HTML output. Every successful
+digitization is also saved under `doc/`, using the input filename with an
+extension matching the output format:
+
+```text
+doc/invoice.md
+doc/invoice.txt
+doc/invoice.html
+doc/invoice.json
+```
+
+The `.json` file is produced when `--json` is used and contains the complete
+upstream response. Existing files with the same name are overwritten.
 
 ## Information extraction
 

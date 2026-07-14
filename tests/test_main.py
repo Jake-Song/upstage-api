@@ -18,6 +18,10 @@ class CLITestCase(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         self.addCleanup(self.tempdir.cleanup)
         self.root = Path(self.tempdir.name)
+        self.doc_dir = self.root / "doc"
+        doc_dir_patch = patch("main.DOC_DIR", self.doc_dir)
+        doc_dir_patch.start()
+        self.addCleanup(doc_dir_patch.stop)
         self.document = self.root / "document.bin"
         self.document.write_bytes(b"document bytes")
         self.schema = self.root / "schema.json"
@@ -94,6 +98,10 @@ class CLITestCase(unittest.TestCase):
         )
         self.assertEqual(status, 0)
         self.assertEqual(stdout, "# Parsed\n")
+        self.assertEqual(
+            (self.doc_dir / "document.md").read_text(encoding="utf-8"),
+            "# Parsed",
+        )
         _, kwargs = post.call_args
         self.assertEqual(kwargs["headers"], {"Authorization": "Bearer test-key"})
         self.assertEqual(
@@ -112,6 +120,13 @@ class CLITestCase(unittest.TestCase):
                 )
                 self.assertEqual(status, 0)
                 self.assertEqual(stdout, f"value-{output_format}\n")
+                extension = ".txt" if output_format == "text" else ".html"
+                self.assertEqual(
+                    (self.doc_dir / f"document{extension}").read_text(
+                        encoding="utf-8"
+                    ),
+                    f"value-{output_format}",
+                )
                 self.assertEqual(
                     post.call_args.kwargs["data"]["output_formats"],
                     json.dumps([output_format]),
@@ -123,6 +138,10 @@ class CLITestCase(unittest.TestCase):
         )
         self.assertEqual(status, 0)
         self.assertEqual(json.loads(stdout), value)
+        self.assertEqual(
+            json.loads((self.doc_dir / "document.json").read_text(encoding="utf-8")),
+            value,
+        )
 
     def test_ocr_defaults_to_text(self):
         status, stdout, _, post = self.invoke(
@@ -131,6 +150,10 @@ class CLITestCase(unittest.TestCase):
         )
         self.assertEqual(status, 0)
         self.assertEqual(stdout, "recognized\n")
+        self.assertEqual(
+            (self.doc_dir / "document.txt").read_text(encoding="utf-8"),
+            "recognized",
+        )
         self.assertEqual(post.call_args.kwargs["data"], {"model": "ocr"})
 
     def test_ocr_rejects_markup_formats_without_request(self):

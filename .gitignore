@@ -10,3 +10,6 @@ wheels/
 .venv
 
 *.pdf
+
+# Generated document digitization output
+doc/
