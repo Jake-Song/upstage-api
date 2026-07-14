@@ -4,7 +4,10 @@ import json
 import os
 import sys
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
+from threading import Event, Thread
 from typing import Any
 
 import requests
@@ -17,6 +20,54 @@ DOC_DIR = Path("doc")
 
 class CLIError(Exception):
     """An error that can be shown to the user without a traceback."""
+
+
+@contextmanager
+def progress_bar(label: str) -> Iterator[None]:
+    stream = sys.stderr
+    if not stream.isatty():
+        yield
+        return
+
+    width = 24
+    block_width = 6
+    stopped = Event()
+    started = time.monotonic()
+
+    def draw(position: int) -> None:
+        bar = (
+            " " * position
+            + "=" * block_width
+            + " " * (width - block_width - position)
+        )
+        elapsed = time.monotonic() - started
+        stream.write(f"\r[{bar}] {label} ({elapsed:.1f}s)")
+        stream.flush()
+
+    def animate() -> None:
+        position = 0
+        direction = 1
+        while not stopped.wait(0.1):
+            position += direction
+            if position in {0, width - block_width}:
+                direction *= -1
+            draw(position)
+
+    draw(0)
+    thread = Thread(target=animate, daemon=True)
+    thread.start()
+    succeeded = False
+    try:
+        yield
+        succeeded = True
+    finally:
+        stopped.set()
+        thread.join()
+        elapsed = time.monotonic() - started
+        fill = "=" if succeeded else "!"
+        status = "done" if succeeded else "failed"
+        stream.write(f"\r[{fill * width}] {label}: {status} ({elapsed:.1f}s)\n")
+        stream.flush()
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -349,15 +400,17 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.command == "chat":
-            result = run_chat(args.prompt, args.reasoning_effort, api_key)
+            with progress_bar("Waiting for chat response"):
+                result = run_chat(args.prompt, args.reasoning_effort, api_key)
             if args.json:
                 print_json(result)
             else:
                 print(choice_content(result))
         elif args.command == "digitize":
-            result, selected_format = run_digitize(
-                args.document, args.mode, args.format, api_key
-            )
+            with progress_bar("Digitizing document"):
+                result, selected_format = run_digitize(
+                    args.document, args.mode, args.format, api_key
+                )
             if args.json:
                 save_digitized_output(args.document, "json", result)
                 print_json(result)
@@ -366,7 +419,8 @@ def main(argv: list[str] | None = None) -> int:
                 save_digitized_output(args.document, selected_format, content)
                 print(content)
         elif args.command == "extract":
-            result = run_extract(args.document, args.schema, api_key)
+            with progress_bar("Extracting information"):
+                result = run_extract(args.document, args.schema, api_key)
             if args.json:
                 print_json(result)
             else:
@@ -379,7 +433,8 @@ def main(argv: list[str] | None = None) -> int:
                     ) from None
                 print_json(extracted)
         else:
-            result = run_agent(args.document, args.agent_id, api_key)
+            with progress_bar("Running agent"):
+                result = run_agent(args.document, args.agent_id, api_key)
             if args.json:
                 print_json(result)
             else:

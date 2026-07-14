@@ -359,6 +359,25 @@ class CLITestCase(unittest.TestCase):
         self.assertIn("UPSTAGE_API_KEY", stderr)
         post.assert_not_called()
 
+    def test_progress_bar_is_shown_only_on_a_terminal(self):
+        class TerminalBuffer(StringIO):
+            def isatty(self):
+                return True
+
+        terminal = TerminalBuffer()
+        with patch("main.sys.stderr", terminal):
+            with main.progress_bar("Working"):
+                pass
+
+        self.assertIn("Working", terminal.getvalue())
+        self.assertIn("done", terminal.getvalue())
+
+        redirected = StringIO()
+        with patch("main.sys.stderr", redirected):
+            with main.progress_bar("Working"):
+                pass
+        self.assertEqual(redirected.getvalue(), "")
+
     def test_missing_document_and_schema_files(self):
         missing = self.root / "missing"
         cases = [
