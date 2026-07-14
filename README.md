@@ -20,7 +20,8 @@ export UPSTAGE_API_KEY="up_..."
 
 ## Standalone scripts
 
-The scripts under `scripts/` call the Upstage API directly with `requests`.
+The scripts under `scripts/` call the Upstage API directly with `requests` and
+show a progress bar on standard error when run in a terminal.
 Run the reasoning script with a prompt or load one of the ten named prompts in
 `examples/reasoning/reasoning.jsonl`:
 
@@ -31,10 +32,10 @@ uv run scripts/chat_reasoning.py --all-examples
 ```
 
 Run `uv run scripts/chat_reasoning.py --help` to see all example names. Results
-are saved to `outputs/reasoning.jsonl` with one record per prompt. Each record
-contains the example name, prompt, reasoning, and answer. `--all-examples`
-makes one API request for each input JSONL record and writes all ten results to
-the output JSONL file.
+are saved to `outputs/chat_reasoning/reasoning.jsonl` with one record per
+prompt. Each record contains the example name, prompt, reasoning, and answer.
+`--all-examples` makes one API request for each input JSONL record and writes
+all ten results to the output JSONL file.
 
 Digitize your own local document and save the result as Markdown:
 
@@ -42,16 +43,22 @@ Digitize your own local document and save the result as Markdown:
 uv run scripts/digitization.py invoice.pdf
 ```
 
-The Markdown is printed and saved to `outputs/<document-name>.md`.
+The Markdown is printed and saved to
+`outputs/digitization/<document-name>.md`.
 
 Extract fields using a JSON Schema file:
 
 ```shell
 uv run scripts/extraction.py invoice.pdf --schema schema/invoice-schema.json
 uv run scripts/extraction.py paper.pdf --schema schema/paper-schema.json
+uv run scripts/extraction.py paper.pdf --auto-schema
 ```
 
-The extracted JSON is printed and saved to `outputs/<document-name>.json`.
+The extracted JSON is printed and saved to
+`outputs/extraction/<document-name>.json`.
+`--auto-schema` first generates a schema from the document and then extracts
+with it, so it makes two API requests. Use `--schema` when you want a stable,
+repeatable output structure.
 Replace the PDF paths with your own documents; the repository does not include
 sample documents. Existing output files with the same name are overwritten.
 
@@ -122,14 +129,14 @@ uv run main.py digitize scan.png --mode ocr --format text
 
 `--format auto` is the default: it selects Markdown for document parsing and
 text for OCR. OCR does not support Markdown or HTML output. Every successful
-digitization is also saved under `doc/`, using the input filename with an
+digitization is also saved under `docs/`, using the input filename with an
 extension matching the output format:
 
 ```text
-doc/invoice.md
-doc/invoice.txt
-doc/invoice.html
-doc/invoice.json
+docs/invoice.md
+docs/invoice.txt
+docs/invoice.html
+docs/invoice.json
 ```
 
 The `.json` file is produced when `--json` is used and contains the complete

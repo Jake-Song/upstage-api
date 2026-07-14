@@ -7,6 +7,11 @@ from pathlib import Path
 
 import requests
 
+if __package__:
+    from .progress import progress_bar
+else:
+    from progress import progress_bar
+
 
 EXAMPLES_FILE = (
     Path(__file__).resolve().parent.parent
@@ -14,7 +19,7 @@ EXAMPLES_FILE = (
     / "reasoning"
     / "reasoning.jsonl"
 )
-OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
+OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs" / "chat_reasoning"
 
 
 def main() -> None:
@@ -57,22 +62,23 @@ def main() -> None:
     if not api_key:
         parser.error("UPSTAGE_API_KEY must be set")
 
-    OUTPUTS_DIR.mkdir(exist_ok=True)
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
     output_records = []
     for index, (output_name, prompt) in enumerate(runs):
-        response = requests.post(
-            "https://api.upstage.ai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": "solar-pro3",
-                "messages": [{"role": "user", "content": prompt}],
-                "reasoning_effort": "high",
-            },
-        )
-        response.raise_for_status()
+        with progress_bar(f"Running {output_name}"):
+            response = requests.post(
+                "https://api.upstage.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "solar-pro3",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "reasoning_effort": "high",
+                },
+            )
+            response.raise_for_status()
 
         message = response.json()["choices"][0]["message"]
         reasoning = message.get("reasoning", "(No reasoning returned)")

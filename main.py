@@ -15,7 +15,7 @@ import requests
 
 API_BASE_URL = "https://api.upstage.ai/v1"
 AGENT_API_BASE_URL = "https://api.upstage.ai/v2"
-DOC_DIR = Path("doc")
+DOC_DIR = Path("docs")
 
 
 class CLIError(Exception):

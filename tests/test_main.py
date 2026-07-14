@@ -18,10 +18,10 @@ class CLITestCase(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory()
         self.addCleanup(self.tempdir.cleanup)
         self.root = Path(self.tempdir.name)
-        self.doc_dir = self.root / "doc"
-        doc_dir_patch = patch("main.DOC_DIR", self.doc_dir)
-        doc_dir_patch.start()
-        self.addCleanup(doc_dir_patch.stop)
+        self.docs_dir = self.root / "docs"
+        docs_dir_patch = patch("main.DOC_DIR", self.docs_dir)
+        docs_dir_patch.start()
+        self.addCleanup(docs_dir_patch.stop)
         self.document = self.root / "document.bin"
         self.document.write_bytes(b"document bytes")
         self.schema = self.root / "schema.json"
@@ -99,7 +99,7 @@ class CLITestCase(unittest.TestCase):
         self.assertEqual(status, 0)
         self.assertEqual(stdout, "# Parsed\n")
         self.assertEqual(
-            (self.doc_dir / "document.md").read_text(encoding="utf-8"),
+            (self.docs_dir / "document.md").read_text(encoding="utf-8"),
             "# Parsed",
         )
         _, kwargs = post.call_args
@@ -122,7 +122,7 @@ class CLITestCase(unittest.TestCase):
                 self.assertEqual(stdout, f"value-{output_format}\n")
                 extension = ".txt" if output_format == "text" else ".html"
                 self.assertEqual(
-                    (self.doc_dir / f"document{extension}").read_text(
+                    (self.docs_dir / f"document{extension}").read_text(
                         encoding="utf-8"
                     ),
                     f"value-{output_format}",
@@ -139,7 +139,7 @@ class CLITestCase(unittest.TestCase):
         self.assertEqual(status, 0)
         self.assertEqual(json.loads(stdout), value)
         self.assertEqual(
-            json.loads((self.doc_dir / "document.json").read_text(encoding="utf-8")),
+            json.loads((self.docs_dir / "document.json").read_text(encoding="utf-8")),
             value,
         )
 
@@ -151,7 +151,7 @@ class CLITestCase(unittest.TestCase):
         self.assertEqual(status, 0)
         self.assertEqual(stdout, "recognized\n")
         self.assertEqual(
-            (self.doc_dir / "document.txt").read_text(encoding="utf-8"),
+            (self.docs_dir / "document.txt").read_text(encoding="utf-8"),
             "recognized",
         )
         self.assertEqual(post.call_args.kwargs["data"], {"model": "ocr"})

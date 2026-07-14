@@ -6,8 +6,13 @@ from pathlib import Path
 
 import requests
 
+if __package__:
+    from .progress import progress_bar
+else:
+    from progress import progress_bar
 
-OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
+
+OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs" / "digitization"
 
 
 def main() -> None:
@@ -23,21 +28,22 @@ def main() -> None:
     if not args.document.is_file():
         parser.error(f"document does not exist or is not a file: {args.document}")
 
-    with args.document.open("rb") as document:
-        response = requests.post(
-            "https://api.upstage.ai/v1/document-digitization",
-            headers={"Authorization": f"Bearer {api_key}"},
-            files={"document": document},
-            data={
-                "model": "document-parse",
-                "output_formats": '["markdown"]',
-            },
-        )
-    response.raise_for_status()
+    with progress_bar("Digitizing document"):
+        with args.document.open("rb") as document:
+            response = requests.post(
+                "https://api.upstage.ai/v1/document-digitization",
+                headers={"Authorization": f"Bearer {api_key}"},
+                files={"document": document},
+                data={
+                    "model": "document-parse",
+                    "output_formats": '["markdown"]',
+                },
+            )
+        response.raise_for_status()
 
     markdown = response.json()["content"]["markdown"]
 
-    OUTPUTS_DIR.mkdir(exist_ok=True)
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
     (OUTPUTS_DIR / f"{args.document.stem}.md").write_text(markdown)
 
     print(markdown)

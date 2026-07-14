@@ -12,5 +12,5 @@ wheels/
 *.pdf
 
 # Generated document digitization output
-doc/
+docs/
 outputs/
