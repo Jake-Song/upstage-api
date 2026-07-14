@@ -15,6 +15,7 @@ import requests
 
 API_BASE_URL = "https://api.upstage.ai/v1"
 AGENT_API_BASE_URL = "https://api.upstage.ai/v2"
+DEFAULT_AGENT_ID = "agt_FmUrJTNMchBsSyxm6QrRRq"
 DOC_DIR = Path("docs")
 
 
@@ -116,7 +117,17 @@ def build_parser() -> argparse.ArgumentParser:
         "agent", help="Process a document with an Upstage Agent"
     )
     agent_parser.add_argument("document", metavar="DOCUMENT", type=Path)
-    agent_parser.add_argument("--agent-id", required=True, metavar="AGENT_ID")
+    agent_parser.add_argument(
+        "--agent-id",
+        default=DEFAULT_AGENT_ID,
+        metavar="AGENT_ID",
+        help=f"Upstage Agent ID (default: {DEFAULT_AGENT_ID})",
+    )
+    agent_parser.add_argument(
+        "--config-id",
+        metavar="CONFIG_ID",
+        help='Agent config version (e.g. "1"); omit to use the latest',
+    )
     agent_parser.add_argument(
         "--json", action="store_true", help="Print the final API response"
     )
@@ -303,7 +314,9 @@ def run_extract(document: Path, schema_path: Path, api_key: str) -> dict[str, An
     )
 
 
-def run_agent(document: Path, agent_id: str, api_key: str) -> dict[str, Any]:
+def run_agent(
+    document: Path, agent_id: str, config_id: str | None, api_key: str
+) -> dict[str, Any]:
     require_file(document, "Document")
     try:
         with document.open("rb") as document_file:
@@ -320,19 +333,22 @@ def run_agent(document: Path, agent_id: str, api_key: str) -> dict[str, Any]:
     if not isinstance(file_id, str):
         raise CLIError("Upstage API returned an unexpected file upload response.")
 
+    job = {
+        "model": agent_id,
+        "include": ["last"],
+        "input": [
+            {
+                "role": "user",
+                "content": [{"type": "input_file", "file_id": file_id}],
+            }
+        ],
+    }
+    if config_id:
+        job["config_id"] = config_id
     result = post(
         f"{AGENT_API_BASE_URL}/responses",
         headers=api_headers(api_key, json_request=True),
-        json={
-            "model": agent_id,
-            "include": ["last"],
-            "input": [
-                {
-                    "role": "user",
-                    "content": [{"type": "input_file", "file_id": file_id}],
-                }
-            ],
-        },
+        json=job,
     )
 
     while result.get("status") in {"queued", "in_progress"}:
@@ -346,11 +362,19 @@ def run_agent(document: Path, agent_id: str, api_key: str) -> dict[str, Any]:
             params={"include": ["last"]},
         )
 
+    try:
+        requests.delete(
+            f"{AGENT_API_BASE_URL}/files/{file_id}", headers=api_headers(api_key)
+        )
+    except requests.RequestException:
+        pass
+
     status = result.get("status")
     if status != "completed":
         if not isinstance(status, str):
             raise CLIError("Upstage API returned an unexpected agent job response.")
-        raise CLIError(f"Agent job ended with status {status}.")
+        error = result.get("error") or "check the agent config in Studio"
+        raise CLIError(f"Agent job ended with status {status}: {error}")
     return result
 
 
@@ -434,7 +458,7 @@ def main(argv: list[str] | None = None) -> int:
                 print_json(extracted)
         else:
             with progress_bar("Running agent"):
-                result = run_agent(args.document, args.agent_id, api_key)
+                result = run_agent(args.document, args.agent_id, args.config_id, api_key)
             if args.json:
                 print_json(result)
             else:

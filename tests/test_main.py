@@ -248,6 +248,7 @@ class CLITestCase(unittest.TestCase):
             patch.dict(os.environ, {"UPSTAGE_API_KEY": "test-key"}, clear=True),
             patch("main.requests.post", side_effect=[uploaded, created]) as post,
             patch("main.requests.get", return_value=self.response(completed_value)) as get,
+            patch("main.requests.delete") as delete,
             patch("main.time.sleep") as sleep,
             redirect_stdout(stdout),
             redirect_stderr(stderr),
@@ -286,6 +287,10 @@ class CLITestCase(unittest.TestCase):
             headers={"Authorization": "Bearer test-key"},
             params={"include": ["last"]},
         )
+        delete.assert_called_once_with(
+            "https://api.upstage.ai/v2/files/file-abc123",
+            headers={"Authorization": "Bearer test-key"},
+        )
 
     def test_agent_json_prints_completed_response(self):
         completed_value = {
@@ -304,6 +309,7 @@ class CLITestCase(unittest.TestCase):
                 ],
             ),
             patch("main.requests.get") as get,
+            patch("main.requests.delete"),
             redirect_stdout(stdout),
             redirect_stderr(stderr),
         ):
@@ -341,6 +347,7 @@ class CLITestCase(unittest.TestCase):
                         os.environ, {"UPSTAGE_API_KEY": "test-key"}, clear=True
                     ),
                     patch("main.requests.post", side_effect=responses),
+                    patch("main.requests.delete"),
                     redirect_stdout(stdout),
                     redirect_stderr(stderr),
                 ):

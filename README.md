@@ -76,12 +76,14 @@ sample documents. Existing output files with the same name are overwritten.
 Run a document through an Agent created in Upstage Studio:
 
 ```shell
-uv run scripts/agent.py invoice.pdf --agent-id <YOUR AGENT ID>
+uv run scripts/agent.py invoice.pdf
+uv run scripts/agent.py invoice.pdf --agent-id <YOUR AGENT ID> --config-id 1
 ```
 
-The script uploads the document, waits for the Agent job to complete, and saves
-the final output to `outputs/agent/<document-name>.json` when it is JSON or
-`outputs/agent/<document-name>.txt` otherwise.
+The script uploads the document, waits for the Agent job to complete, deletes
+the uploaded file, and saves the final JSON output to
+`outputs/agent/<document-name>.json`. `--agent-id` overrides the default Agent
+and `--config-id` pins a config version (the latest is used when omitted).
 
 ## Chat
 
@@ -120,16 +122,18 @@ for the current Studio instructions.
 Run a document through an Agent created in Upstage Studio:
 
 ```shell
-uv run main.py agent invoice.pdf --agent-id <YOUR AGENT ID>
-uv run main.py agent invoice.pdf --agent-id <YOUR AGENT ID> --json
+uv run main.py agent invoice.pdf
+uv run main.py agent invoice.pdf --agent-id <YOUR AGENT ID> --config-id 1
+uv run main.py agent invoice.pdf --json
 ```
 
 The command follows the [Upstage Agents quickstart](https://console.upstage.ai/docs/agents):
-it uploads the document for `user_data`, starts an asynchronous agent job, and
-polls until the job completes. By default it prints the agent's final text,
-pretty-printing it when the output is JSON. `--json` prints the complete final
-job response. Create and configure the agent in Upstage Studio first, then pass
-its `agt_...` ID with `--agent-id`.
+it uploads the document for `user_data`, starts an asynchronous agent job,
+polls until the job completes, and deletes the uploaded file. By default it
+prints the agent's final text, pretty-printing it when the output is JSON.
+`--json` prints the complete final job response. `--agent-id` overrides the
+default Agent and `--config-id` pins a config version (the latest is used when
+omitted).
 
 ## Document digitization
 
