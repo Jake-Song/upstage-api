@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The paper title"
+    },
+    "authors": {
+      "type": "array",
+      "description": "The names of the paper authors",
+      "items": {
+        "type": "string"
+      }
+    },
+    "abstract": {
+      "type": "string",
+      "description": "The paper abstract"
+    },
+    "keywords": {
+      "type": "array",
+      "description": "Keywords associated with the paper",
+      "items": {
+        "type": "string"
+      }
+    },
+    "publication_year": {
+      "type": "integer",
+      "description": "The year the paper was published"
+    },
+    "venue": {
+      "type": "string",
+      "description": "The journal, conference, or repository where the paper was published"
+    },
+    "doi": {
+      "type": "string",
+      "description": "The paper DOI"
+    }
+  },
+  "required": [
+    "title",
+    "authors",
+    "abstract"
+  ]
+}
