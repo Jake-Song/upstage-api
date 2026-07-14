@@ -44,16 +44,16 @@ uv run scripts/digitization.py invoice.pdf
 
 The Markdown is printed and saved to `outputs/<document-name>.md`.
 
-Extract invoice fields using the inline JSON Schema in the script:
+Extract fields using a JSON Schema file:
 
 ```shell
-uv run scripts/extraction.py invoice.pdf
+uv run scripts/extraction.py invoice.pdf --schema schema/invoice-schema.json
+uv run scripts/extraction.py paper.pdf --schema schema/paper-schema.json
 ```
 
 The extracted JSON is printed and saved to `outputs/<document-name>.json`.
-Replace `invoice.pdf` with the path to your document; the repository does not
-include a sample invoice. Existing output files with the same name are
-overwritten.
+Replace the PDF paths with your own documents; the repository does not include
+sample documents. Existing output files with the same name are overwritten.
 
 ## Chat
 
@@ -159,7 +159,7 @@ Pass a file containing a bare JSON Schema object to `--schema`:
 Run extraction with:
 
 ```shell
-uv run main.py extract invoice.pdf --schema invoice-schema.json
+uv run main.py extract invoice.pdf --schema schema/invoice-schema.json
 ```
 
 The schema file itself is supplied to the API. Do not wrap it in
@@ -173,7 +173,7 @@ to print the complete upstream response instead:
 
 ```shell
 uv run main.py digitize invoice.pdf --json
-uv run main.py extract invoice.pdf --schema invoice-schema.json --json
+uv run main.py extract invoice.pdf --schema schema/invoice-schema.json --json
 ```
 
 Input, configuration, HTTP, and malformed-response errors are written to

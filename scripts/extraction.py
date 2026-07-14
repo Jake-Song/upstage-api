@@ -1,4 +1,4 @@
-"""Extract invoice fields from a local document using JSON Schema."""
+"""Extract fields from a local document using JSON Schema."""
 
 import argparse
 import base64
@@ -12,31 +12,17 @@ import requests
 OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
 
 
-INVOICE_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "invoice_number": {
-            "type": "string",
-            "description": "The invoice identifier",
-        },
-        "vendor_name": {
-            "type": "string",
-            "description": "The name of the invoice issuer",
-        },
-        "total_amount": {
-            "type": "number",
-            "description": "The total amount due",
-        },
-    },
-    "required": ["invoice_number", "vendor_name", "total_amount"],
-}
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Extract invoice fields from a document with Upstage."
+        description="Extract structured fields from a document with Upstage."
     )
     parser.add_argument("document", type=Path, help="Path to a local document")
+    parser.add_argument(
+        "--schema",
+        type=Path,
+        required=True,
+        help="Path to a JSON Schema file",
+    )
     args = parser.parse_args()
 
     api_key = os.environ.get("UPSTAGE_API_KEY")
@@ -44,6 +30,15 @@ def main() -> None:
         parser.error("UPSTAGE_API_KEY must be set")
     if not args.document.is_file():
         parser.error(f"document does not exist or is not a file: {args.document}")
+    if not args.schema.is_file():
+        parser.error(f"schema does not exist or is not a file: {args.schema}")
+
+    try:
+        schema = json.loads(args.schema.read_text())
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        parser.error(f"could not read a valid JSON schema from {args.schema}: {exc}")
+    if not isinstance(schema, dict):
+        parser.error("schema must be a JSON object")
 
     encoded_document = base64.b64encode(args.document.read_bytes()).decode("ascii")
     response = requests.post(
@@ -73,8 +68,8 @@ def main() -> None:
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
-                    "name": "invoice_schema",
-                    "schema": INVOICE_SCHEMA,
+                    "name": "document_schema",
+                    "schema": schema,
                 },
             },
         },
