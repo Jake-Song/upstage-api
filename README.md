@@ -18,6 +18,27 @@ from `UPSTAGE_API_KEY`:
 export UPSTAGE_API_KEY="up_..."
 ```
 
+## Standalone scripts
+
+The scripts under `scripts/` call the Upstage API directly with `requests`.
+Run the reasoning example with a prompt:
+
+```shell
+uv run scripts/chat_reasoning.py "What is the sum of the first 100 integers?"
+```
+
+Digitize a local document and print the result as Markdown:
+
+```shell
+uv run scripts/digitization.py invoice.pdf
+```
+
+Extract invoice fields with the inline JSON Schema in the example:
+
+```shell
+uv run scripts/extraction.py invoice.pdf
+```
+
 ## Chat
 
 Send a single, non-streaming prompt to `solar-pro3`:
