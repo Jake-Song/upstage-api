@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "properties": {
+    "invoice_number": {
+      "type": "string",
+      "description": "The invoice identifier"
+    },
+    "total": {
+      "type": "number",
+      "description": "The invoice total"
+    }
+  },
+  "required": [
+    "invoice_number"
+  ]
+}
