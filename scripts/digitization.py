@@ -7,6 +7,9 @@ from pathlib import Path
 import requests
 
 
+OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Digitize a document with Upstage Document Parse."
@@ -32,7 +35,12 @@ def main() -> None:
         )
     response.raise_for_status()
 
-    print(response.json()["content"]["markdown"])
+    markdown = response.json()["content"]["markdown"]
+
+    OUTPUTS_DIR.mkdir(exist_ok=True)
+    (OUTPUTS_DIR / f"{args.document.stem}.md").write_text(markdown)
+
+    print(markdown)
 
 
 if __name__ == "__main__":

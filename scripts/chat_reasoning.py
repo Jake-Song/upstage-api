@@ -9,6 +9,7 @@ import requests
 
 
 EXAMPLES_FILE = Path(__file__).resolve().parent.parent / "examples" / "reasoning.jsonl"
+OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
 
 
 def main() -> None:
@@ -55,10 +56,18 @@ def main() -> None:
     response.raise_for_status()
 
     message = response.json()["choices"][0]["message"]
-    print("Reasoning:")
-    print(message.get("reasoning", "(No reasoning returned)"))
-    print("\nAnswer:")
-    print(message["content"])
+    output = (
+        "Reasoning:\n"
+        f'{message.get("reasoning", "(No reasoning returned)")}\n\n'
+        "Answer:\n"
+        f'{message["content"]}'
+    )
+
+    OUTPUTS_DIR.mkdir(exist_ok=True)
+    output_name = args.example or "chat_reasoning"
+    (OUTPUTS_DIR / f"{output_name}.txt").write_text(f"{output}\n")
+
+    print(output)
 
 
 if __name__ == "__main__":

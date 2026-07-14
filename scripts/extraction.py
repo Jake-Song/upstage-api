@@ -9,6 +9,9 @@ from pathlib import Path
 import requests
 
 
+OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
+
+
 INVOICE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -79,7 +82,12 @@ def main() -> None:
     response.raise_for_status()
 
     content = response.json()["choices"][0]["message"]["content"]
-    print(json.dumps(json.loads(content), indent=2, ensure_ascii=False))
+    output = json.dumps(json.loads(content), indent=2, ensure_ascii=False)
+
+    OUTPUTS_DIR.mkdir(exist_ok=True)
+    (OUTPUTS_DIR / f"{args.document.stem}.json").write_text(f"{output}\n")
+
+    print(output)
 
 
 if __name__ == "__main__":
