@@ -1,0 +1,10 @@
+{"name":"average_speed","prompt":"A train travels 120 km at 60 km/h and returns at 40 km/h. What is its average speed?"}
+{"name":"chickens_and_rabbits","prompt":"A farmer has chickens and rabbits with 35 heads and 94 legs. How many of each are there?"}
+{"name":"compare_powers","prompt":"Which is larger: 2 to the power of 100 or 10 to the power of 30? Explain without calculating the full values."}
+{"name":"dice_probability","prompt":"What is the probability of rolling a total of 8 with two fair six-sided dice?"}
+{"name":"find_duplicate","prompt":"Design an efficient method to find the duplicate in a list containing numbers 1 through n with one repeated value."}
+{"name":"irrational_square_root","prompt":"Explain why the square root of 2 is irrational."}
+{"name":"linear_equation","prompt":"Solve 3x + 7 = 25 and verify the solution."}
+{"name":"number_sequence","prompt":"Find the next number in the sequence 2, 6, 12, 20, 30 and explain the pattern."}
+{"name":"sum_first_100","prompt":"What is the sum of the first 100 integers?"}
+{"name":"three_switches","prompt":"Three switches control three bulbs in another room. You may enter the room once. How can you identify each switch?"}
