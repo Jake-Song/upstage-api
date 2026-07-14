@@ -8,7 +8,12 @@ from pathlib import Path
 import requests
 
 
-EXAMPLES_FILE = Path(__file__).resolve().parent.parent / "examples" / "reasoning.jsonl"
+EXAMPLES_FILE = (
+    Path(__file__).resolve().parent.parent
+    / "examples"
+    / "reasoning"
+    / "reasoning.jsonl"
+)
 OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
 
 
@@ -26,12 +31,12 @@ def main() -> None:
     parser.add_argument(
         "--example",
         choices=sorted(examples),
-        help="Load a prompt from examples/reasoning.jsonl",
+        help="Load a prompt from examples/reasoning/reasoning.jsonl",
     )
     parser.add_argument(
         "--all-examples",
         action="store_true",
-        help="Run every prompt in examples/reasoning.jsonl",
+        help="Run every prompt in examples/reasoning/reasoning.jsonl",
     )
     args = parser.parse_args()
 

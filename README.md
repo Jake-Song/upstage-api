@@ -22,7 +22,7 @@ export UPSTAGE_API_KEY="up_..."
 
 The scripts under `scripts/` call the Upstage API directly with `requests`.
 Run the reasoning script with a prompt or load one of the ten named prompts in
-`examples/reasoning.jsonl`:
+`examples/reasoning/reasoning.jsonl`:
 
 ```shell
 uv run scripts/chat_reasoning.py "What is the sum of the first 100 integers?"
