@@ -1,6 +1,7 @@
 """Digitize a local document and print the result as Markdown."""
 
 import argparse
+import base64
 import os
 from pathlib import Path
 
@@ -37,13 +38,25 @@ def main() -> None:
                 data={
                     "model": "document-parse",
                     "output_formats": '["markdown"]',
+                    "base64_encoding": '["figure", "chart"]',
                 },
             )
         response.raise_for_status()
 
-    markdown = response.json()["content"]["markdown"]
+    result = response.json()
+    markdown = result["content"]["markdown"]
 
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    placeholder = "![image](/image/placeholder)"
+    for element in result["elements"]:
+        encoded = element.get("base64_encoding")
+        if not encoded or placeholder not in element["content"]["markdown"]:
+            continue
+        image_name = f"{args.document.stem}_{element['id']}.png"
+        (OUTPUTS_DIR / image_name).write_bytes(base64.b64decode(encoded))
+        markdown = markdown.replace(placeholder, f"![image]({image_name})", 1)
+
     (OUTPUTS_DIR / f"{args.document.stem}.md").write_text(markdown)
 
     print(markdown)
