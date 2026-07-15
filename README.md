@@ -44,17 +44,22 @@ uv run scripts/digitization.py invoice.pdf
 ```
 
 The Markdown is printed and saved to
-`outputs/digitization/<document-name>.md`.
+`outputs/digitization/<document-name>.md`. Figures and charts are saved next
+to it as `<document-name>_<element-id>.png` files, and the Markdown references
+them by relative path.
 
 Generate a reusable JSON Schema from your own document:
 
 ```shell
 uv run scripts/schema_generation.py paper.pdf
+uv run scripts/schema_generation.py paper.pdf \
+  --prompt "Extract only the document title and publication date."
 ```
 
 The bare schema is printed and saved to
 `outputs/schema_generation/<document-name>-schema.json`, ready to pass to the
-extraction script with `--schema`.
+extraction script with `--schema`. `--prompt` replaces the built-in
+instruction that tells the model what the schema should extract.
 
 Extract fields using a JSON Schema file:
 
@@ -90,6 +95,8 @@ without Upstage Studio:
 
 ```shell
 uv run scripts/custom_agent.py invoice.pdf --auto-schema
+uv run scripts/custom_agent.py invoice.pdf --auto-schema \
+  --schema-prompt "The schema must contain only the invoice number and total."
 uv run scripts/custom_agent.py invoice.pdf --schema schema/invoice.json \
   --system-prompt "Summarize risks in this contract."
 ```
@@ -97,7 +104,9 @@ uv run scripts/custom_agent.py invoice.pdf --schema schema/invoice.json \
 The script runs three steps: document parsing to Markdown, schema-driven
 information extraction, and a final `solar-pro3` step that reads the Markdown
 and the extracted fields under the system prompt (a built-in analysis prompt
-is used when `--system-prompt` is omitted). It prints the LLM answer, saves
+is used when `--system-prompt` is omitted). `--schema-prompt` adds guidance to
+the schema generation instruction and requires `--auto-schema`; it does not
+affect the final LLM step. It prints the LLM answer, saves
 the parsed Markdown to `outputs/custom_agent/<document-name>.md`, and saves
 the extraction and answer to `outputs/custom_agent/<document-name>.json`.
 
