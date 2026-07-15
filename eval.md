@@ -45,6 +45,9 @@
 
 ---
 
-# 관찰
+## 관찰
 - 정답과 대부분 일치.
 - 엄격하게 본다면 status 에서 약간의 오류 발생
+
+# Digitization
+# Extraction 
