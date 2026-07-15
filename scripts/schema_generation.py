@@ -22,6 +22,14 @@ def main() -> None:
         description="Generate an extraction schema from a document with Upstage."
     )
     parser.add_argument("document", type=Path, help="Path to a local document")
+    parser.add_argument(
+        "--prompt",
+        default=(
+            "Generate a schema for extracting structured "
+            "information from this document."
+        ),
+        help="Instruction guiding what the schema should extract",
+    )
     args = parser.parse_args()
 
     api_key = os.environ.get("UPSTAGE_API_KEY")
@@ -43,10 +51,7 @@ def main() -> None:
                 "messages": [
                     {
                         "role": "system",
-                        "content": (
-                            "Generate a schema for extracting structured "
-                            "information from this document."
-                        ),
+                        "content": args.prompt,
                     },
                     {
                         "role": "user",
