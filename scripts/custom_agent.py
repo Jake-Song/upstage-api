@@ -18,6 +18,10 @@ DEFAULT_SYSTEM_PROMPT = (
     "You are a document analysis assistant. Using the parsed document and the "
     "extracted fields, answer with a concise, accurate analysis of the document."
 )
+SCHEMA_PROMPT_TEMPLATE = (
+    "Generate a schema for extracting structured information from this "
+    "document. {prompt}"
+)
 OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs" / "custom_agent"
 
 
@@ -45,6 +49,14 @@ def main() -> None:
         default=DEFAULT_SYSTEM_PROMPT,
         help="System prompt for the final LLM step",
     )
+    parser.add_argument(
+        "--schema-prompt",
+        default="",
+        help=(
+            "Guidance templated into the schema generation instruction "
+            "(requires --auto-schema)"
+        ),
+    )
     args = parser.parse_args()
 
     api_key = os.environ.get("UPSTAGE_API_KEY")
@@ -54,6 +66,8 @@ def main() -> None:
         parser.error(f"document does not exist or is not a file: {args.document}")
     if args.schema and not args.schema.is_file():
         parser.error(f"schema does not exist or is not a file: {args.schema}")
+    if args.schema_prompt and not args.auto_schema:
+        parser.error("--schema-prompt requires --auto-schema")
 
     with progress_bar("Digitizing document"):
         with args.document.open("rb") as document:
@@ -102,10 +116,9 @@ def main() -> None:
                     "messages": [
                         {
                             "role": "system",
-                            "content": (
-                                "Generate a schema for extracting structured "
-                                "information from this document."
-                            ),
+                            "content": SCHEMA_PROMPT_TEMPLATE.format(
+                                prompt=args.schema_prompt
+                            ).strip(),
                         },
                         document_message,
                     ],
